@@ -1,0 +1,109 @@
+load NAT.maude
+
+mod LIST-NAT is
+	pr(NAT) .
+	sort ListNat .
+	op nil : -> ListNat .
+	op _|_ : Nat ListNat -> ListNat .
+	ops last length : ListNat -> Nat .
+	ops clear tail reverse : ListNat -> ListNat .
+	op _+_ : ListNat ListNat -> ListNat .
+	op append : Nat ListNat -> ListNat .
+	var N N1 N2 : Nat .
+	var L L1 L2 : ListNat .
+	eq last(N | nil) = N .
+	eq last(N1 | (N2 | L)) = last(N2 | L) .
+	eq length(nil) = 0 .
+	eq length(N | L) = succ(length(L)) .
+	eq clear(L) = nil .
+	eq tail(nil) = nil .
+	eq tail(N | L) = L .
+	eq reverse(nil) = nil .
+	eq reverse(N | L) = reverse(L) + (N | nil) .
+	eq nil + L = L .
+	eq (N | L1) + L2 = N | (L1 + L2) .
+	eq append(N, L) = L + (N | nil) .
+endm
+
+mod INSERTION is
+	pr(LIST-NAT + NAT-INEQ) .
+	op sort : ListNat -> ListNat .
+	op insert : Nat ListNat -> ListNat .
+	var N N1 N2 : Nat .
+	var L : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = insert(N, sort(L)) .
+	eq insert(N, nil) = N | nil .
+	ceq insert(N1, N2 | L) = N1 | (N2 | L) if N1 <= N2 = true .
+	ceq insert(N1, N2 | L) = N2 | insert(N1, L) if N1 <= N2 = false .
+endm
+
+mod BUBBLE is
+	pr(LIST-NAT + NAT-INEQ) .
+	op sort : ListNat -> ListNat .
+	op loop : Nat ListNat -> ListNat .
+	op swap : ListNat -> ListNat .
+	var N N1 N2 : Nat .
+	var L : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = loop(length(L), N | L) .
+	eq loop(0, L) = L .
+	eq loop(succ(N), L) = loop(N, swap(L)) .
+	eq swap(N | nil) = N | nil .
+	ceq swap(N1 | (N2 | L)) = N1 | swap(N2 | L) if N1 <= N2 = true .
+	ceq swap(N1 | (N2 | L)) = N2 | swap(N1 | L) if N1 <= N2 = false .
+endm
+
+mod SELECTIVE is
+	pr(LIST-NAT + NAT-EQ + NAT-INEQ) .
+	op sort : ListNat -> ListNat .
+	op select : ListNat -> Nat .
+	op remove : Nat ListNat -> ListNat .
+	var N N1 N2 : Nat .
+	var L : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = select(N | L) | sort(remove(select(N | L), N | L)) .
+	eq select(N | nil) = N .
+	ceq select(N1 | (N2 | L)) = select(N1 | L) if N1 <= N2 = true .
+	ceq select(N1 | (N2 | L)) = select(N2 | L) if N1 <= N2 = false .
+	eq remove(N, nil) = nil .
+	ceq remove(N1, N2 | L) = L if N1 == N2 = true .
+	ceq remove(N1, N2 | L) = N2 | remove(N1, L) if N1 == N2 = false . 
+endm
+
+mod MERGE is
+	pr(LIST-NAT + NAT-INEQ) .
+	op sort : ListNat -> ListNat .
+	ops divide merge : ListNat ListNat -> ListNat .
+	var N N1 N2 : Nat .
+	var L L1 L2 : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = divide(N | L, nil) .
+	eq divide(nil, L) = L .
+	ceq divide(N | L1, L2) = divide(L1, N | L2) if length(L2) < length(N | L1) = true .
+	ceq divide(N | L1, L2) = merge(sort(N | L1), sort(L2)) if length(L2) < length(N | L1) = false .
+	eq merge(nil, L) = L .
+	eq merge(L, nil) = L .
+	ceq merge(N1 | L1, N2 | L2) = N1 | merge(L1,  N2 | L2) if N1 <= N2 = true .
+	ceq merge(N1 | L1, N2 | L2) = N2 | merge(N1 | L1,  L2) if N1 <= N2 = false .
+endm
+
+mod QUICK is
+	pr(LIST-NAT + NAT-INEQ) .
+	op sort : ListNat -> ListNat .
+	ops under over : Nat ListNat -> ListNat .
+	var N N1 N2 : Nat .
+	var L L1 L2 L3 : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = sort(under(N, L)) + (N | sort(over(N, L))) .
+	eq under(N, nil) = nil .
+	ceq under(N1, N2 | L) = N2 | under(N1, L) if N2 <= N1 = true .
+	ceq under(N1, N2 | L) = under(N1, L) if N2 <= N1 = false .
+	eq over(N, nil) = nil .
+	ceq over(N1, N2 | L) = N2 | over(N1, L) if N1 < N2 = true .
+	ceq over(N1, N2 | L) = over(N1, L) if N1 < N2 = false .
+endm
+
+
+select SELECTIVE .
+red sort(0 | succ^4(0) | succ^2(0) | 0 | succ^2(0) | nil) .

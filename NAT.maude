@@ -1,0 +1,145 @@
+set include BOOL off .
+
+mod NAT is
+	sort Nat .
+	op 0 : -> Nat .
+	op succ : Nat -> Nat [iter] .
+endm
+
+mod NAT-ADD is
+	pr(NAT) .
+	op _+_ : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq 0 + N = N .
+	eq succ(N1) + N2 = succ(N1 + N2) .
+endm
+
+mod NAT-MULT is
+	pr(NAT-ADD) .
+	op _*_ : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq 0 * N = 0 .
+	eq succ(N1) * N2 = (N1 * N2) + N2 .
+endm
+
+mod FACT is
+	pr(NAT-MULT) .
+	op _! : Nat -> Nat .
+	var N : Nat .
+	eq 0 ! = succ(0) .
+	eq succ(N) ! = N ! * succ(N) .
+endm
+
+mod EXPO is
+	pr(NAT-MULT) .
+	op _^_ : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq N ^ 0 = succ(0) .
+	eq N1 ^ succ(N2) = (N1 ^ N2) * N1 .
+endm
+
+mod SUM is
+	pr(NAT-ADD) .
+	op sum : Nat -> Nat .
+	var N : Nat .
+	eq sum(0) = 0 .
+	eq sum(succ(N)) = sum(N) + succ(N) .
+endm
+
+mod FIBO is
+	pr(NAT-ADD) .
+	op fibo : Nat -> Nat .
+	var N : Nat .
+	eq fibo(0) = 0 .
+	eq fibo(succ(0)) = succ(0) .
+	eq fibo(succ(succ(N))) = fibo(N) + fibo(succ(N)) .
+endm
+
+mod MAX/MIN is
+	pr(NAT) .
+	ops max min : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq max(0, N) = N .
+	eq max(N, 0) = N .
+	eq max(succ(N1), succ(N2)) = succ(max(N1, N2)) .
+	eq min(0, N) = 0 .
+	eq min(N, 0) = 0 .
+	eq min(succ(N1), succ(N2)) = succ(min(N1, N2)) .
+endm
+
+mod NAT-EXT is
+	pr(NAT-MULT) .
+	op inf : -> Nat .
+	var N N1 N2 : Nat .
+	eq succ(inf) = inf .
+	eq inf + N = inf .
+	eq N + inf = inf .
+	eq inf * 0 = 0 .
+	eq 0 * inf = 0 .
+	eq inf * succ(N) = inf .
+	eq succ(N) * inf = inf .
+endm
+
+load TRUTH.maude
+
+mod NAT-EQ is
+	pr(NAT + TRUTH) .
+	op _==_ : Nat Nat -> Bool .
+	var N N1 N2 : Nat .
+	eq N == N = true .
+	eq 0 == succ(N) = false .
+	eq succ(N) == 0 = false .
+	eq succ(N1) == succ(N2) = N1 == N2 .
+endm
+
+mod NAT-INEQ is
+	pr(NAT + TRUTH) .
+	ops _<_ _<=_ : Nat Nat -> Bool .
+	var N N1 N2 : Nat .
+	eq 0 < succ(N) = true .
+	eq N < 0 = false .
+	eq succ(N1) < succ(N2) = N1 < N2 .
+	eq 0 <= N = true .
+	eq succ(N) <= 0 = false .
+	eq succ(N1) <= succ(N2) = N1 <= N2 .
+endm
+
+mod NAT-SUBT is
+	pr(NAT) .
+	op errNat : -> Nat .
+	op _-_ : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq 0 - succ(N) = errNat .
+	eq N - 0 = N .
+	eq succ(N1) - succ(N2) = N1 - N2 .
+endm
+
+mod DIV is
+	pr(NAT-SUBT + NAT-INEQ) .
+	op _div_ : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq 0 div succ(N) = 0 .
+	eq N div 0 = errNat .
+	ceq succ(N1) div succ(N2) = 0 if N1 < N2 = true .
+	ceq succ(N1) div succ(N2) = succ((N1 - N2) div succ(N2)) if N1 < N2 = false .
+endm
+
+mod MOD is
+	pr(NAT-SUBT + NAT-INEQ) .
+	op _mod_ : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq 0 mod succ(N) = 0 .
+	eq N mod 0 = errNat .
+	ceq succ(N1) mod succ(N2) = succ(N1) if N1 < N2 = true .
+	ceq succ(N1) mod succ(N2) = (N1 - N2) mod succ(N2) if N1 < N2 = false .
+endm
+
+mod GCD is
+	pr(NAT-SUBT + NAT-INEQ) .
+	op gcd : Nat Nat -> Nat .
+	var N N1 N2 : Nat .
+	eq gcd(0, 0) = errNat .
+	eq gcd(0, succ(N)) = succ(N) .
+	ceq gcd(succ(N1), succ(N2)) = gcd(N2 - N1, succ(N1)) if N1 < N2 = true .
+	ceq gcd(succ(N1), succ(N2)) = gcd(N1 - N2, succ(N2)) if N1 < N2 = false .
+endm

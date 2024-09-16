@@ -1,0 +1,73 @@
+set include BOOL off .
+
+mod INT is
+	sort Int .
+	op 0 : -> Int .
+	ops succ pred : Int -> Int [iter] .
+	var X : Int .
+	eq succ(pred(X)) = X .
+	eq pred(succ(X)) = X .
+endm
+
+mod INT-ADD is
+	pr(INT) .
+	op _+_ : Int Int -> Int .
+	var X X1 X2 : Int .
+	eq 0 + X = X .
+	eq succ(X1) + X2 = succ(X1 + X2) .
+	eq pred(X1) + X2 = pred(X1 + X2) .
+endm
+
+mod INT-SUBT is
+	pr(INT) .
+	op _-_ : Int Int -> Int .
+	var X X1 X2 : Int .
+	eq X - 0 = X .
+	eq X1 - succ(X2) = pred(X1 - X2) .
+	eq X1 - pred(X2) = succ(X1 - X2) .
+endm
+
+mod INT-MULT is
+	pr(INT-ADD + INT-SUBT) .
+	op _*_ : Int Int -> Int .
+	var X X1 X2 : Int .
+	eq 0 * X = 0 .
+	eq succ(X1) * X2 = (X1 * X2) + X2 .
+	eq pred(X1) * X2 = (X1 * X2) - X2 .
+endm
+
+load TRUTH.maude
+
+mod INT-EQ is
+	pr(INT + TRUTH) .
+	op pos? : Int -> Bool .
+	op _==_ : Int Int -> Bool .
+	var X X1 X2 : Int .
+	eq pos?(0) = false .
+	eq pos?(succ(0)) = true .	
+	ceq pos?(succ(X)) = true if pos?(X) = true .
+	ceq pos?(pred(X)) = false if pos?(X) = false .
+	eq X == X = true .
+	eq succ(X1) == X2 = X1 == pred(X2) .
+	eq pred(X1) == X2 = X1 == succ(X2) .
+	ceq 0 == X = false if pos?(X) = true .
+	ceq 0 == X = false if pos?(succ(X)) = false .
+endm
+
+mod INT-INEQ is
+	pr(INT + TRUTH) .
+	ops _<_ _<=_ : Int Int -> Bool .
+	var X X1 X2 : Int .
+	eq X < X = false .
+	eq succ(X1) < X2 = X1 < pred(X2) .
+	eq pred(X1) < X2 = X1 < succ(X2) .
+	eq 0 < succ(0) = true .
+	ceq 0 < succ(X) = true if 0 < X = true .
+	eq 0 < pred(0) = false .
+	ceq 0 < pred(X) = false if 0 < X = false .
+	eq X <= X = true .
+	eq succ(X1) <= X2 = X1 <= pred(X2) .
+	eq pred(X1) <= X2 = X1 <= succ(X2) .
+	ceq 0 <= succ(X) = true if 0 <= X = true .
+	ceq 0 <= pred(X) = false if 0 <= X = false .
+endm
