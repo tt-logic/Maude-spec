@@ -1,4 +1,37 @@
-load NAT.maude
+set include BOOL off .
+
+fmod TRUTH is
+	sort Bool .
+	ops true false : -> Bool .
+endfm
+
+mod NAT is
+	sort Nat .
+	op 0 : -> Nat .
+	op succ : Nat -> Nat [iter] .
+endm
+
+mod NAT-EQ is
+	pr(NAT + TRUTH) .
+	op _==_ : Nat Nat -> Bool .
+	var N N1 N2 : Nat .
+	eq N == N = true .
+	eq 0 == succ(N) = false .
+	eq succ(N) == 0 = false .
+	eq succ(N1) == succ(N2) = N1 == N2 .
+endm
+
+mod NAT-INEQ is
+	pr(NAT + TRUTH) .
+	ops _<_ _<=_ : Nat Nat -> Bool .
+	var N N1 N2 : Nat .
+	eq 0 < succ(N) = true .
+	eq N < 0 = false .
+	eq succ(N1) < succ(N2) = N1 < N2 .
+	eq 0 <= N = true .
+	eq succ(N) <= 0 = false .
+	eq succ(N1) <= succ(N2) = N1 <= N2 .
+endm
 
 mod LIST-NAT is
 	pr(NAT) .
@@ -38,22 +71,6 @@ mod INSERTION is
 	ceq insert(N1, N2 | L) = N2 | insert(N1, L) if N1 <= N2 = false .
 endm
 
-mod BUBBLE is
-	pr(LIST-NAT + NAT-INEQ) .
-	op sort : ListNat -> ListNat .
-	op loop : Nat ListNat -> ListNat .
-	op swap : ListNat -> ListNat .
-	var N N1 N2 : Nat .
-	var L : ListNat .
-	eq sort(nil) = nil .
-	eq sort(N | L) = loop(length(L), N | L) .
-	eq loop(0, L) = L .
-	eq loop(succ(N), L) = loop(N, swap(L)) .
-	eq swap(N | nil) = N | nil .
-	ceq swap(N1 | (N2 | L)) = N1 | swap(N2 | L) if N1 <= N2 = true .
-	ceq swap(N1 | (N2 | L)) = N2 | swap(N1 | L) if N1 <= N2 = false .
-endm
-
 mod SELECTIVE is
 	pr(LIST-NAT + NAT-EQ + NAT-INEQ) .
 	op sort : ListNat -> ListNat .
@@ -69,6 +86,54 @@ mod SELECTIVE is
 	eq remove(N, nil) = nil .
 	ceq remove(N1, N2 | L) = L if N1 == N2 = true .
 	ceq remove(N1, N2 | L) = N2 | remove(N1, L) if N1 == N2 = false . 
+endm
+
+mod BUBBLE is
+	pr(LIST-NAT + NAT-INEQ) .
+	op sort : ListNat -> ListNat .
+	ops loop swap : Nat ListNat -> ListNat .
+	var N N1 N2 N3 : Nat .
+	var L : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = loop(length(L), N | L) .
+	eq loop(0, L) = L .
+	eq loop(succ(N), L) = loop(N, swap(succ(N), L)) .
+	eq swap(0, L) = L .
+	ceq swap(succ(N1), N2 | (N3 | L)) = N2 | swap(N1, N3 | L) if N2 <= N3 = true .
+	ceq swap(succ(N1), N2 | (N3 | L)) = N3 | swap(N1, N2 | L) if N2 <= N3 = false .
+endm
+
+mod ODD-EVEN is
+	pr(LIST-NAT + NAT-INEQ) .
+	ops sort even-swap odd-swap : ListNat -> ListNat .
+	op loop : Nat ListNat -> ListNat .
+	var N N1 N2 N3 : Nat .
+	var L : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = loop(length(L), N | L) .
+	eq loop(0, L) = L .
+	eq loop(succ(N), L) = loop(N, odd-swap(even-swap(L))) .
+	eq even-swap(nil) = nil .
+	eq even-swap(N | nil) = N | nil .
+	ceq even-swap(N1 | (N2 | L)) = N1 | (N2 | even-swap(L)) if N1 <= N2 = true .	
+	ceq even-swap(N1 | (N2 | L)) = N2 | (N1 | even-swap(L)) if N1 <= N2 = false .
+	eq odd-swap(N | L) = N | even-swap(L) .
+endm
+
+mod GNOME is
+	pr(LIST-NAT + NAT-INEQ) .
+	ops sort swap back : ListNat -> ListNat .
+	op $ : -> Nat .
+	var N N1 N2 N3 : Nat .
+	var L : ListNat .
+	eq sort(nil) = nil .
+	eq sort(N | L) = $ | swap(N | L) .
+	eq swap(N | nil) = back(N | nil) .
+	eq swap($ | (N | L)) = $ | swap(N | L) .
+	ceq N1 | swap(N2 | (N3 | L)) = N1 | (N2 | swap(N3 | L)) if N2 <= N3 = true .
+	ceq N1 | swap(N2 | (N3 | L)) = swap(N1 | (N3 | (N2 | L))) if N2 <= N3 = false .
+	eq N1 | back(N2 | L) = back(N1 | (N2 | L)) .
+	eq back($ | L) = L .
 endm
 
 mod MERGE is
@@ -104,6 +169,5 @@ mod QUICK is
 	ceq over(N1, N2 | L) = over(N1, L) if N1 < N2 = false .
 endm
 
-
-select SELECTIVE .
-red sort(0 | succ^4(0) | succ^2(0) | 0 | succ^2(0) | nil) .
+select ODD-EVEN .
+red sort(succ^3(0) | succ^2(0) | succ^3(0) | succ(0) | succ^3(0) | succ^2(0) | succ^3(0) | 0 | succ(0) | succ^2(0) | nil) .
