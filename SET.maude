@@ -1,0 +1,19 @@
+set include BOOL off .
+
+mod SEQ is
+	sorts Elt Seq .
+	op empty : -> Seq .
+	op __ : Seq Seq -> Seq [assoc id: empty] .	
+endm
+
+mod MSET is
+	sorts Elt MSet .
+	op empty : -> MSet .
+	op __ : MSet MSet -> MSet [assoc comm id: empty] .
+endm
+
+mod SET is
+	sorts Elt Set .
+	op empty : -> Set .
+	op __ : Set Set -> Set [assoc comm id: empty] .
+endm
